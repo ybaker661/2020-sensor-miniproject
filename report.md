@@ -8,7 +8,7 @@ Task 1 comprises taking the packets received on the client side, and writing tha
 
 The temperature variance is 79.5 and the temperature median is 27.0
 The occupancy variance is: 19.8 the occupancy median is 19.0
-The histograms can be seen by running the code with the data.txt file in the github repo
+The histograms can be seen in the png files in the github repo
 The Delta_T variance is 0.904 and the Delta_T mean is 0.948, which is similar to an Erlang distribution with mu approximately equals one. The parameter k, from qualitative inspection, would have to be > 2
 
 Finally, the algorithm for task 3 consists of devising an algorithm for detecting and removing bad data. Since the temperature measured in any given room should be approx the mean of the boltzmann distribution of particles in the room +/- the uncertainty of the sensor, it is a sufficient condition that anything larger than +/- 1.5 standard deviation of the data set is an anomaly. This is sufficient for all three rooms, since even though they may vary in size and occupancy (and hence temperature), the range is large enough to accommodate. Using this metric, it is found that 0.7% of the data is anomalous. However, this does not necessarily indicate a faulty sensor since it is within the realm of random error.
