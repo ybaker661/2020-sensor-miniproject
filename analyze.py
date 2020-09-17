@@ -1,13 +1,3 @@
-#!/usr/bin/env python3
-"""
-This example assumes the JSON data is saved one line per timestamp (message from server).
-
-It shows how to read and process a text file line-by-line in Python, converting JSON fragments
-to per-sensor dictionaries indexed by time.
-These dictionaries are immediately put into Pandas DataFrames for easier processing.
-
-Feel free to save your data in a better format--I was just showing what one might do quickly.
-"""
 import pandas
 from pathlib import Path
 import argparse
@@ -23,41 +13,87 @@ def load_data(file: Path) -> T.Dict[str, pandas.DataFrame]:
     temperature = {}
     occupancy = {}
     co2 = {}
-
+    time = []
     with open(file, "r") as f:
         for line in f:
+
             r = json.loads(line)
             room = list(r.keys())[0]
-            time = datetime.fromisoformat(r[room]["time"])
+            currtime = datetime.fromisoformat(r[room]["time"])
 
-            temperature[time] = {room: r[room]["temperature"][0]}
-            occupancy[time] = {room: r[room]["occupancy"][0]}
-            co2[time] = {room: r[room]["co2"][0]}
-
+            temperature[currtime] = {room: r[room]["temperature"][0]}
+            occupancy[currtime] = {room: r[room]["occupancy"][0]}
+            co2[currtime] = {room: r[room]["co2"][0]}
+            time += [currtime]
     data = {
         "temperature": pandas.DataFrame.from_dict(temperature, "index").sort_index(),
         "occupancy": pandas.DataFrame.from_dict(occupancy, "index").sort_index(),
         "co2": pandas.DataFrame.from_dict(co2, "index").sort_index(),
     }
 
-    return data
+
+    return data, time
 
 
-if __name__ == "__main__":
-    p = argparse.ArgumentParser(description="load and analyse IoT JSON data")
-    p.add_argument("file", help="path to JSON data file")
-    P = p.parse_args()
 
-    file = Path(P.file).expanduser()
 
-    data = load_data(file)
+file = '/Users/ybaker661/2020-sensor-miniproject/data.txt'
 
-    for k in data:
-        # data[k].plot()
-        time = data[k].index
-        data[k].hist()
-        plt.figure()
-        plt.hist(np.diff(time.values).astype(np.int64) // 1000000000)
-        plt.xlabel("Time (seconds)")
+data, time = load_data(file)
 
-    plt.show()
+#Class1 chosen for task 2.1-2.3
+temp = data['temperature'].class1
+temp = temp.dropna()
+temp_med = temp.median()
+temp_var = temp.var()
+print('The temperature variance is: ' + str(temp_var) +'\n')
+print('The temperature median is: ' + str(temp_med) +'\n')
+
+occ = data['occupancy'].class1
+occ = occ.dropna()
+occ_med = occ.median()
+occ_var = occ.var()
+print('The occupancy variance is: ' + str(occ_var) +'\n')
+print('The occupancy median is: ' + str(occ_med) +'\n')
+
+co2 = data['co2'].class1
+co2 = co2.dropna()
+#histogram for each sensor type
+
+names = ['Temperature', 'Occupancy', 'Carbon Dioxide']
+dats = [temp, occ, co2]
+units = ['$^\circ$C', 'No. People', '?']
+
+for n,i in enumerate(names):
+
+    ax = plt.figure().gca()
+    dats[n].hist()
+    ax.set_ylabel("# of occurences")
+    ax.set_xlabel(i +  units[n])
+    ax.set_title("Class1 " + i)
+
+# plt.show()
+
+deltime = []
+for i in range(len(time)-1):
+
+    currdel = time[i+1] - time[i]
+    currdel = currdel.total_seconds()
+    deltime += [currdel]
+
+#to be able to use built in pandas functions
+deltime = pandas.DataFrame(deltime, columns=['Del_Time'])
+
+deltime_mean = deltime.mean()
+deltime_var = deltime.var()
+
+print('The Delta_T variance is: ' + str(deltime_var) +'\n')
+print('The Delta_T mean is: ' + str(deltime_mean) +'\n')
+
+
+ax = plt.figure().gca()
+deltime.hist()
+ax.set_ylabel("# of occurences")
+ax.set_xlabel("Delta T [s]")
+
+plt.show()
