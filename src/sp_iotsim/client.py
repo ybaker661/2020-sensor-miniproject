@@ -18,7 +18,7 @@ import argparse
 import asyncio
 
 
-async def main(port: int, addr: str, max_packets: int, log_file: Path = None):
+async def main(port: int, addr: str, max_packets: int, log_file: Path = ''):
     """
 
     Parameters
@@ -37,6 +37,9 @@ async def main(port: int, addr: str, max_packets: int, log_file: Path = None):
 
     if log_file:
         log_file = Path(log_file).expanduser()
+    
+    # filename = Path(P.log).expanduser()
+    filename = '/Users/ybaker661/2020-sensor-miniproject/data.txt'
 
     uri = f"ws://{addr}:{port}"
 
@@ -47,13 +50,19 @@ async def main(port: int, addr: str, max_packets: int, log_file: Path = None):
         else:
             print(qb)
 
+        file = open(filename, "w+")
+
         for i in range(max_packets):
             data = await websocket.recv()
             if i % 5 == 0:
                 pass
                 # print(f"{i} total messages received")
             print(data)
+            print(type(data))
+            file.write(data + "\n")
+            file.flush()
 
+        file.close()
 
 def cli():
     p = argparse.ArgumentParser(description="WebSocket client")
@@ -64,7 +73,7 @@ def cli():
         "-max_packets",
         help="shut down program after total packages received",
         type=int,
-        default=100000,
+        default=1000,
     )
     P = p.parse_args()
 
